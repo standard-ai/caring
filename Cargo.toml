@@ -1,6 +1,6 @@
 [package]
 name = "caring"
-version = "0.1.0"
+version = "0.1.1"
 authors = [
     "Leo Gaspard <leo@standard.ai>",
     "Simonas Kazlauskas <simonas@standard.ai>",
@@ -15,8 +15,8 @@ keywords = ["mmap", "memory-map", "io", "memmap"]
 categories = ["concurrency"]
 
 [badges]
-is-it-maintained-issue-resolution = { repository = "https://github.com/standard-ai/caring" }
-is-it-maintained-open-issues = { repository = "https://github.com/standard-ai/caring" }
+is-it-maintained-issue-resolution = { repository = "standard-ai/caring" }
+is-it-maintained-open-issues = { repository = "standard-ai/caring" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
