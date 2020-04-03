@@ -171,7 +171,7 @@ unsafe fn create_shared<T>(size: usize) -> Result<Shared<T>, Error> {
     // Create the file
     let memfd = MemfdOptions::new()
         .close_on_exec(true)
-        .create("shmem")
+        .create("caring")
         .map_err(|e| Error::CreateFileError(SyncFailure::new(e)))?;
     let file = memfd.into_file();
 
@@ -397,7 +397,7 @@ mod tests {
             const $base_name: usize = 42;
             const INCR: usize = 987650;
             const DECR: usize = 901230;
-            $build_zone;
+            $build_zone
             let zone1 = $clone_zone;
             let zone2 = $clone_zone;
             let incr = thread::spawn(move || {

@@ -1,13 +1,23 @@
 [package]
-name = "shmem"
-version = "0.3.0"
+name = "caring"
+version = "0.1.0"
 authors = [
     "Leo Gaspard <leo@standard.ai>",
     "Simonas Kazlauskas <simonas@standard.ai>",
     "Bernardo Meurer <bernardo@standard.ai>"
 ]
-publish = false
 edition = "2015"
+description = "Sharing is caring: a safe library for mmap'ing memory in multiple processes"
+readme = "README.md"
+repository = "https://github.com/standard-ai/caring"
+license = "Apache-2.0 OR BSD-3-Clause"
+keywords = ["mmap", "memory-map", "io", "memmap"]
+categories = ["concurrency"]
+
+[badges]
+is-it-maintained-issue-resolution = { repository = "https://github.com/standard-ai/caring" }
+is-it-maintained-open-issues = { repository = "https://github.com/standard-ai/caring" }
+maintenance = { status = "actively-developed" }
 
 [dependencies]
 errno = "0.2"
