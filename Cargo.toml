@@ -27,4 +27,4 @@ memfd = "0.3"
 thiserror = "1.0.14"
 
 [dev-dependencies]
-sendfd = "0.2"
+sendfd = "0.3"
