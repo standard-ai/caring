@@ -47,7 +47,7 @@ use memfd::MemfdOptions;
 pub enum Error {
     /// Could not create an in-memory file for shared memory
     #[fail(display = "Could not create an in-memory file for shared memory")]
-    CreateFileError(#[cause] SyncFailure<memfd::errors::Error>),
+    CreateFileError(#[cause] SyncFailure<memfd::Error>),
 
     /// Failed to set the length of the shared memory file
     #[fail(display = "Failed to set the length of the shared memory file")]

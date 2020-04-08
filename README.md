@@ -6,6 +6,8 @@ bound to be
 [`ProcSync`](https://docs.rs/interprocess-traits/latest/interprocess_traits/trait.ProcSync.html)
 in order to be shared between multiple processes.
 
-Read the [documentation] for in-depth information.
+Read the [documentation] for in-depth information, and see the [Changelog] for
+the changes between versions.
 
 [documentation]: https://docs.rs/caring
+[Changelog]: ./CHANGELOG.md
