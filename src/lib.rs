@@ -1,9 +1,8 @@
 extern crate errno;
-extern crate failure;
-extern crate failure_derive;
 extern crate interprocess_traits;
 extern crate libc;
 extern crate memfd;
+extern crate thiserror;
 
 #[cfg(test)]
 extern crate sendfd;
@@ -16,7 +15,6 @@ use std::{
 };
 
 use errno::errno;
-use failure::SyncFailure;
 use interprocess_traits::ProcSync;
 use libc::c_void;
 use memfd::MemfdOptions;
@@ -43,34 +41,34 @@ use memfd::MemfdOptions;
 // good `Arc`, and the user should then not be incentivized to use it.
 
 /// The error type for errors in this crate.
-#[derive(Debug, failure_derive::Fail)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// Could not create an in-memory file for shared memory
-    #[fail(display = "Could not create an in-memory file for shared memory")]
-    CreateFileError(#[cause] SyncFailure<memfd::Error>),
+    #[error("Could not create an in-memory file for shared memory")]
+    CreateFileError(#[source] memfd::Error),
 
     /// Failed to set the length of the shared memory file
-    #[fail(display = "Failed to set the length of the shared memory file")]
-    TruncateError(#[cause] io::Error),
+    #[error("Failed to set the length of the shared memory file")]
+    TruncateError(#[source] io::Error),
 
     /// Failed to retrieve shared memory file metadata
-    #[fail(display = "Failed to retrieve shared memory file metadata")]
-    GetMetadataError(#[cause] io::Error),
+    #[error("Failed to retrieve shared memory file metadata")]
+    GetMetadataError(#[source] io::Error),
 
     /// File length after truncation does not match requested size
-    #[fail(
-        display = "Failed to truncate the in-memory file to {} bytes, the file is {}B long",
+    #[error(
+        "Failed to truncate the in-memory file to {} bytes, the file is {}B long",
         expected, actual
     )]
     LengthError { expected: usize, actual: usize },
 
     /// Failed to map shared memory
-    #[fail(display = "Failed to map shared memory")]
-    MmapError(#[cause] io::Error),
+    #[error("Failed to map shared memory")]
+    MmapError(#[source] io::Error),
 
     /// Failed to duplicate the file descriptor
-    #[fail(display = "Failed to duplicate the file descriptor")]
-    DupError(#[cause] io::Error),
+    #[error("Failed to duplicate the file descriptor")]
+    DupError(#[source] io::Error),
 }
 
 /// A memory-mapped region pointing to an element of type T.
@@ -172,7 +170,7 @@ unsafe fn create_shared<T>(size: usize) -> Result<Shared<T>, Error> {
     let memfd = MemfdOptions::new()
         .close_on_exec(true)
         .create("caring")
-        .map_err(|e| Error::CreateFileError(SyncFailure::new(e)))?;
+        .map_err(|e| Error::CreateFileError(e))?;
     let file = memfd.into_file();
 
     // Truncate

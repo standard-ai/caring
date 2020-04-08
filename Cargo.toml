@@ -21,11 +21,10 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 errno = "0.2"
-failure = "0.1"
-failure_derive = "0.1"
 interprocess-traits = "0.1.1"
 libc = "0.2.58"
 memfd = "0.3"
+thiserror = "1.0.14"
 
 [dev-dependencies]
 sendfd = "0.2"
