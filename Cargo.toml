@@ -25,7 +25,7 @@ failure = "0.1"
 failure_derive = "0.1"
 interprocess-traits = "0.1.1"
 libc = "0.2.58"
-memfd = "0.2"
+memfd = "0.3"
 
 [dev-dependencies]
 sendfd = "0.2"
