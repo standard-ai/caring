@@ -58,7 +58,8 @@ pub enum Error {
     /// File length after truncation does not match requested size
     #[error(
         "Failed to truncate the in-memory file to {} bytes, the file is {}B long",
-        expected, actual
+        expected,
+        actual
     )]
     LengthError { expected: usize, actual: usize },
 
@@ -163,7 +164,10 @@ unsafe fn create_shared<T>(size: usize) -> Result<Shared<T>, Error> {
         //     page size.
         //  2. This makes us forwards-compatible for the day we'll decide we want to actually
         //     support that use case (by allocating lots of memory).
-        panic!("Page size {}B is too low for requested alignment {}", page_size, requested_align);
+        panic!(
+            "Page size {}B is too low for requested alignment {}",
+            page_size, requested_align
+        );
     }
 
     // Create the file
@@ -279,6 +283,14 @@ impl<T> Shared<T> {
     pub fn as_mut_ptr(data: &Shared<T>) -> *mut T {
         data.region.ptr
     }
+
+    /// Returns the size in bytes of the data contained by `data`.
+    ///
+    /// For a `Shared<T>` it is `mem::size_of<T>()` and for `Shared<c_void>` it
+    /// is the size specified at creation.
+    pub fn size(data: &Shared<T>) -> usize {
+        data.region.size
+    }
 }
 
 impl<T: ProcSync> Shared<T> {
@@ -380,6 +392,7 @@ mod tests {
     fn new_sized_allocates_properly() {
         const SIZE: usize = 10 * 4 * 1024 + 1; // 10 pages (maybe) plus one byte
         let zone = Shared::new_sized(SIZE).unwrap();
+        assert_eq!(Shared::size(&zone), SIZE);
         unsafe { test_write_and_read!(zone, SIZE) };
     }
 
@@ -387,6 +400,7 @@ mod tests {
     fn new_allocates_properly() {
         const SIZE: usize = 4 * 1024 - 1; // 1 page (maybe) minus one byte
         let zone = Shared::new([0u8; SIZE]).unwrap();
+        assert_eq!(Shared::size(&zone), SIZE);
         unsafe { test_write_and_read!(zone, SIZE) };
     }
 
