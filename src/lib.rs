@@ -134,9 +134,6 @@ impl<T> Drop for MmapRegion<T> {
 ///
 /// The data is owned, but the element of type `T` will *not* be dropped when the `Shared<T>` is
 /// dropped. Note that an element that has a meaningful `Drop` is likely not `ProcSync` anyway.
-///
-/// Note that the anonymous file associated with this memory mapping is sealed and
-/// cannot be resized, otherwise `SIGBUS` could be hit if the file were truncated.
 pub struct Shared<T> {
     fd: RawFd,
     region: MmapRegion<T>,
@@ -148,6 +145,10 @@ unsafe impl<T: Sync> Send for Shared<T> {}
 unsafe impl<T: Sync> Sync for Shared<T> {}
 
 /// Creates an uninitialized `Shared<T>` that points to a memory region of size `size`.
+///
+/// Note that the anonymous file associated with this memory mapping is sealed and
+/// cannot be resized. If it were not the case, `SIGBUS` could be hit if the file
+/// were truncated.
 ///
 /// # Unsafety
 ///
@@ -199,7 +200,7 @@ unsafe fn create_shared<T>(size: usize) -> Result<Shared<T>, Error> {
     // If the previous memfd_create call worked, this means that the F_ADD_SEALS
     // option is supported and this should never fail.
     let rc = libc::fcntl(file.as_raw_fd(), libc::F_ADD_SEALS, seals);
-    assert_eq!(rc, 0, "filesystem does not support sealing");
+    assert_eq!(rc, 0, "sealing failed on a memfd");
 
     // Retrieve the file descriptor
     let fd = file.into_raw_fd();
