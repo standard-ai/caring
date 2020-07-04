@@ -134,6 +134,9 @@ impl<T> Drop for MmapRegion<T> {
 ///
 /// The data is owned, but the element of type `T` will *not* be dropped when the `Shared<T>` is
 /// dropped. Note that an element that has a meaningful `Drop` is likely not `ProcSync` anyway.
+///
+/// Note that the anonymous file associated with this memory mapping is sealed and
+/// cannot be resized, otherwise `SIGBUS` could be hit if the file were truncated.
 pub struct Shared<T> {
     fd: RawFd,
     region: MmapRegion<T>,
