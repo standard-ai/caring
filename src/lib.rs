@@ -146,6 +146,10 @@ unsafe impl<T: Sync> Sync for Shared<T> {}
 
 /// Creates an uninitialized `Shared<T>` that points to a memory region of size `size`.
 ///
+/// Note that the anonymous file associated with this memory mapping is sealed and
+/// cannot be resized. If it were not the case, `SIGBUS` could be hit if the file
+/// were truncated.
+///
 /// # Unsafety
 ///
 /// Returned `Shared` will point to uninitialized memory.
@@ -172,6 +176,7 @@ unsafe fn create_shared<T>(size: usize) -> Result<Shared<T>, Error> {
 
     // Create the file
     let memfd = MemfdOptions::new()
+        .allow_sealing(true)
         .close_on_exec(true)
         .create("caring")
         .map_err(|e| Error::CreateFileError(e))?;
@@ -188,6 +193,14 @@ unsafe fn create_shared<T>(size: usize) -> Result<Shared<T>, Error> {
             actual: actual_size,
         });
     }
+
+    // For extra safety, lets add seals to prevent futher modifications of
+    // the file's size.
+    let seals = libc::F_SEAL_SHRINK | libc::F_SEAL_GROW | libc::F_SEAL_SEAL;
+    // If the previous memfd_create call worked, this means that the F_ADD_SEALS
+    // option is supported and this should never fail.
+    let rc = libc::fcntl(file.as_raw_fd(), libc::F_ADD_SEALS, seals);
+    assert_eq!(rc, 0, "sealing failed on a memfd");
 
     // Retrieve the file descriptor
     let fd = file.into_raw_fd();
