@@ -86,7 +86,7 @@ struct MmapRegion<T> {
 impl<T> MmapRegion<T> {
     /// Memory-maps `fd` with size `size` and returns a pointer to the mapped memory region.
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This assumes that `fd` points to a file of at least size `size`.
     unsafe fn new(size: usize, fd: RawFd) -> Result<MmapRegion<T>, Error> {
@@ -95,7 +95,7 @@ impl<T> MmapRegion<T> {
             ptr::null_mut(),
             size,
             libc::PROT_READ | libc::PROT_WRITE, // Read-write mapping
-            // MAP_SHARED: Share mapping with `fork`'d processes, validate that all flags are known
+            // MAP_SHARED_VALIDATE: Share mapping with `fork`'d processes, validate that all flags are known
             // MAP_POPULATE: immediately reserve the pages, do not lazily allocate them
             libc::MAP_SHARED_VALIDATE | libc::MAP_POPULATE,
             fd,
@@ -148,7 +148,7 @@ unsafe impl<T: Sync> Sync for Shared<T> {}
 /// cannot be resized. If it were not the case, `SIGBUS` could be hit if the file
 /// were truncated.
 ///
-/// # Unsafety
+/// # Safety
 ///
 /// Returned `Shared` will point to uninitialized memory.
 ///
@@ -177,7 +177,7 @@ unsafe fn create_shared<T>(size: usize) -> Result<Shared<T>, Error> {
         .allow_sealing(true)
         .close_on_exec(true)
         .create("caring")
-        .map_err(|e| Error::CreateMemfd(e))?;
+        .map_err(Error::CreateMemfd)?;
     let file = memfd.into_file();
 
     // Truncate
@@ -243,7 +243,7 @@ impl Shared<c_void> {
 impl<T> Shared<T> {
     /// Creates a `Shared<T>` from a pre-existing `fd`.
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This assumes that `fd` is a file descriptor that has been created by another instance of
     /// `Shared<T>`, and that it will never be used by anything else than `Shared<T>`. Note that
@@ -307,7 +307,7 @@ impl<T> Shared<T> {
 impl<T: ProcSync> Shared<T> {
     /// Creates a `Shared<T>` from pre-existing `fd`.
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This assumes that `fd` is a file descriptor that has been created by another instance of
     /// `Shared<T>`, and that it will never be used by anything else than `Shared<T>`. Note that
@@ -390,11 +390,11 @@ mod tests {
             let size = $size;
             let ptr_mut = &*zone as *const _ as *mut u8;
             for i in 0..size {
-                ptr::write_volatile(ptr_mut.offset(i as isize), i as u8);
+                ptr::write_volatile(ptr_mut.add(i), i as u8);
             }
             let ptr = &*zone as *const _ as *const u8;
             for i in 0..size {
-                assert_eq!(ptr::read_volatile(ptr.offset(i as isize)), i as u8);
+                assert_eq!(ptr::read_volatile(ptr.add(i)), i as u8);
             }
         }};
     }
