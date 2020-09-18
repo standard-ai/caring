@@ -1,6 +1,6 @@
 [package]
 name = "caring"
-version = "0.2.0"
+version = "0.3.0"
 authors = [
     "Leo Gaspard <leo@standard.ai>",
     "Simonas Kazlauskas <simonas@standard.ai>",
