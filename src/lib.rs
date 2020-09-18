@@ -45,31 +45,29 @@ use memfd::MemfdOptions;
 pub enum Error {
     /// Could not create an in-memory file for shared memory
     #[error("Could not create an in-memory file for shared memory")]
-    CreateFileError(#[source] memfd::Error),
+    CreateMemfd(#[source] memfd::Error),
 
     /// Failed to set the length of the shared memory file
     #[error("Failed to set the length of the shared memory file")]
-    TruncateError(#[source] io::Error),
+    Truncate(#[source] io::Error),
 
-    /// Failed to retrieve shared memory file metadata
-    #[error("Failed to retrieve shared memory file metadata")]
-    GetMetadataError(#[source] io::Error),
+    /// Failed to retrieve the length of the shared memory file
+    #[error("Failed to retrieve the length of the shared memory file")]
+    GetMetadata(#[source] io::Error),
 
     /// File length after truncation does not match requested size
     #[error(
-        "Failed to truncate the in-memory file to {} bytes, the file is {}B long",
-        expected,
-        actual
+        "Failed to truncate the in-memory file to {expected} bytes, the file is {actual}B long"
     )]
-    LengthError { expected: usize, actual: usize },
+    Length { expected: usize, actual: usize },
 
     /// Failed to map shared memory
     #[error("Failed to map shared memory")]
-    MmapError(#[source] io::Error),
+    Mmap(#[source] io::Error),
 
     /// Failed to duplicate the file descriptor
     #[error("Failed to duplicate the file descriptor")]
-    DupError(#[source] io::Error),
+    Dup(#[source] io::Error),
 }
 
 /// A memory-mapped region pointing to an element of type T.
@@ -106,7 +104,7 @@ impl<T> MmapRegion<T> {
 
         // Check the memory map succeeded
         if ptr == libc::MAP_FAILED {
-            return Err(Error::MmapError(errno().into()));
+            return Err(Error::Mmap(errno().into()));
         }
 
         Ok(MmapRegion {
@@ -179,16 +177,16 @@ unsafe fn create_shared<T>(size: usize) -> Result<Shared<T>, Error> {
         .allow_sealing(true)
         .close_on_exec(true)
         .create("caring")
-        .map_err(|e| Error::CreateFileError(e))?;
+        .map_err(|e| Error::CreateMemfd(e))?;
     let file = memfd.into_file();
 
     // Truncate
-    file.set_len(size as u64).map_err(Error::TruncateError)?;
+    file.set_len(size as u64).map_err(Error::Truncate)?;
 
     // Check truncation succeeded
-    let actual_size = file.metadata().map_err(Error::GetMetadataError)?.len() as usize;
+    let actual_size = file.metadata().map_err(Error::GetMetadata)?.len() as usize;
     if actual_size != size {
-        return Err(Error::LengthError {
+        return Err(Error::Length {
             expected: size,
             actual: actual_size,
         });
@@ -263,7 +261,7 @@ impl<T> Shared<T> {
         // Retrieve the length of the file
         let mut statbuf = mem::zeroed::<libc::stat>();
         if libc::fstat(fd, &mut statbuf) != 0 {
-            return Err(Error::GetMetadataError(io::Error::last_os_error()));
+            return Err(Error::GetMetadata(io::Error::last_os_error()));
         }
         assert_eq!(statbuf.st_mode & libc::S_IFMT, libc::S_IFREG);
         let size = statbuf.st_size as usize;
@@ -281,7 +279,7 @@ impl<T> Shared<T> {
         unsafe {
             let fd = libc::dup(data.as_raw_fd());
             if fd == -1 {
-                return Err(Error::DupError(errno().into()));
+                return Err(Error::Dup(errno().into()));
             }
 
             // The unsafety requirements here are satisfied by the successful `dup` and the fact
