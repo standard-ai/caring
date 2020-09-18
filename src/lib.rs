@@ -1,4 +1,3 @@
-extern crate errno;
 extern crate interprocess_traits;
 extern crate libc;
 extern crate memfd;
@@ -14,7 +13,6 @@ use std::{
     ptr,
 };
 
-use errno::errno;
 use interprocess_traits::ProcSync;
 use libc::c_void;
 use memfd::MemfdOptions;
@@ -104,7 +102,7 @@ impl<T> MmapRegion<T> {
 
         // Check the memory map succeeded
         if ptr == libc::MAP_FAILED {
-            return Err(Error::Mmap(errno().into()));
+            return Err(Error::Mmap(std::io::Error::last_os_error()));
         }
 
         Ok(MmapRegion {
@@ -279,7 +277,7 @@ impl<T> Shared<T> {
         unsafe {
             let fd = libc::dup(data.as_raw_fd());
             if fd == -1 {
-                return Err(Error::Dup(errno().into()));
+                return Err(Error::Dup(std::io::Error::last_os_error()));
             }
 
             // The unsafety requirements here are satisfied by the successful `dup` and the fact

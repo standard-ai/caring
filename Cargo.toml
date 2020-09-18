@@ -20,7 +20,6 @@ is-it-maintained-open-issues = { repository = "standard-ai/caring" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-errno = "0.2"
 interprocess-traits = "0.1.1"
 libc = "0.2.58"
 memfd = "0.3"
