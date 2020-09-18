@@ -420,8 +420,8 @@ mod tests {
     macro_rules! test_sync_across_threads {
         ($zone_name:ident, $base_name:ident; $build_zone:stmt, $clone_zone:expr; $v:ident, $incr:expr, $decr:expr) => {{
             const $base_name: usize = 42;
-            const INCR: usize = 987650;
-            const DECR: usize = 901230;
+            const INCR: usize = 9876500;
+            const DECR: usize = 9012300;
             $build_zone
             let zone1 = $clone_zone;
             let zone2 = $clone_zone;
@@ -518,8 +518,8 @@ mod tests {
     macro_rules! test_sync_across_processes_with_fork {
         ($v:ident, $incr:expr, $decr:expr) => {{
             const BASE: usize = 1337;
-            const INCR: usize = 890120;
-            const DECR: usize = 876540;
+            const INCR: usize = 8901200;
+            const DECR: usize = 8765400;
             let zone = Shared::new((AtomicUsize::new(BASE), AtomicBool::new(false))).unwrap();
             let ($v, child_complete) = &*zone;
             let child = || {
@@ -580,8 +580,8 @@ mod tests {
     macro_rules! test_sync_across_processes_after_socket_send {
         ($v:ident, $incr:expr, $decr:expr) => {{
             const BASE: usize = 10;
-            const INCR: usize = 900000;
-            const DECR: usize = 800000;
+            const INCR: usize = 9000000;
+            const DECR: usize = 8000000;
             let (send, receive) = UnixDatagram::pair().unwrap();
             let child = || {
                 // In the child
