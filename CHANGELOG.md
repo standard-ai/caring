@@ -1,3 +1,7 @@
+# Not yet released
+
+ * Update `memfd` to 0.4
+
 # 0.3.0 (2020-09-18)
 
  * Add `Sharing::size` method
