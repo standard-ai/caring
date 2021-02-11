@@ -22,7 +22,7 @@ maintenance = { status = "actively-developed" }
 [dependencies]
 interprocess-traits = "0.1.1"
 libc = "0.2.58"
-memfd = "0.3"
+memfd = "0.4"
 thiserror = "1.0.14"
 
 [dev-dependencies]
